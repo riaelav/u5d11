@@ -18,6 +18,10 @@ public record EmployeeDTO(
 
         @NotEmpty(message = "Email is required")
         @Email(message = "Email must be valid")
-        String email
+        String email,
+
+        @NotEmpty(message = "Password is required")
+        @Size(min = 5)
+        String password
 ) {
 }

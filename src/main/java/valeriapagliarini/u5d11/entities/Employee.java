@@ -30,14 +30,21 @@ public class Employee {
     @Column(nullable = false, unique = true)
     private String email;
 
+
+    @Column(nullable = false, unique = true)
+    private String password;
+
     @Column(name = "profile_img")
     private String profileImage;
 
-    public Employee(String username, String firstName, String lastName, String email) {
+
+    public Employee(String username, String firstName, String lastName, String email, String password, String profileImage) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.password = password;
+        this.profileImage = profileImage;
     }
 
     @Override

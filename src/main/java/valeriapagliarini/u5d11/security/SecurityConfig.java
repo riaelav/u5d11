@@ -1,0 +1,36 @@
+package valeriapagliarini.u5d11.security;
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        //disabilito il form di login
+        httpSecurity.formLogin(formLogin -> formLogin.disable());
+        //disabilito la protezione da CSRF
+        httpSecurity.csrf(csrf -> csrf.disable());
+        //disabilito le sessioni
+        httpSecurity.sessionManagement(sessions ->
+                sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+
+// - personalizzo il comportamento di funzionalità pre-esistenti
+        httpSecurity.authorizeHttpRequests(h ->
+                h.requestMatchers("/**").permitAll());
+
+
+        return httpSecurity.build();
+
+    }
+
+
+}
