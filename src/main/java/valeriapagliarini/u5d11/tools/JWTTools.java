@@ -3,16 +3,18 @@ package valeriapagliarini.u5d11.tools;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import valeriapagliarini.u5d11.entities.Employee;
 import valeriapagliarini.u5d11.exceptions.UnauthorizedException;
 
 import java.util.Date;
 
+@Component
 public class JWTTools {
     @Value("${jwt.secret}")
     private String secret;
 
-    private String createToken(Employee employee) {
+    public String createToken(Employee employee) {
 
 
         return Jwts.builder()
@@ -29,10 +31,13 @@ public class JWTTools {
             Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parse(accessToken);
         } catch (Exception ex) {
             // .parse() ci lancerà diversi tipi di eccezioni a seconda che il token sia stato manipolato o scaduto o malformato
-            throw new UnauthorizedException("Problemi con il token! Effettuare di nuovo il login!"); // --> 401
+            throw new UnauthorizedException("Problems with token. Login again "); // 401
         }
 
     }
 
+    public String extractIdFromToken(String accessToken) {
+        return Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parseSignedClaims(accessToken).getPayload().getSubject();
+    }
 
 }

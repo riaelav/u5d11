@@ -5,10 +5,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import valeriapagliarini.u5d11.entities.Employee;
 import valeriapagliarini.u5d11.exceptions.UnauthorizedException;
+import valeriapagliarini.u5d11.services.EmployeeService;
 import valeriapagliarini.u5d11.tools.JWTTools;
 
 import java.io.IOException;
@@ -16,6 +21,8 @@ import java.io.IOException;
 @Component
 public class JWTCheckerFilter extends OncePerRequestFilter {
 
+    @Autowired
+    EmployeeService employeeService;
     @Autowired
     private JWTTools jwtTools;
 
@@ -25,14 +32,23 @@ public class JWTCheckerFilter extends OncePerRequestFilter {
         //verifico che ci sia Authorization Header
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new UnauthorizedException("Insert token in Authorization Header in the correct format")
-    //estraggo il token dall'header
-        String accessToken = authHeader.replace("Bearer", "");
+            throw new UnauthorizedException("Insert token in Authorization Header in the correct format");
+        //estraggo il token dall'header
+        String accessToken = authHeader.replace("Bearer ", "");
         //verifico che il token non sia stato manipolato e che non sia scaduto
         jwtTools.verifyToken(accessToken);
 
+        //autorizzazione
+        String employeeId = jwtTools.extractIdFromToken(accessToken);
+        Employee currentEmployee = this.employeeService.findById(Long.parseLong(employeeId));
+
+        //associo un utente al security context
+        Authentication authentication = new UsernamePasswordAuthenticationToken(currentEmployee, null, currentEmployee.getAuthorities());
+        //security context
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         //se è tutto ok proseguo
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
 
         // se qualcosa non va errore 401
     }

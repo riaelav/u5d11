@@ -3,9 +3,11 @@ package valeriapagliarini.u5d11.services;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import valeriapagliarini.u5d11.entities.Employee;
+import valeriapagliarini.u5d11.enums.Role;
 import valeriapagliarini.u5d11.exceptions.BadRequestException;
 import valeriapagliarini.u5d11.exceptions.NotFoundException;
 import valeriapagliarini.u5d11.payloads.EmployeeDTO;
@@ -21,6 +23,8 @@ public class EmployeeService {
     EmployeeRepository employeeRepository;
     @Autowired
     private Cloudinary imgUploader;
+    @Autowired
+    private PasswordEncoder bCrypt;
 
     public Employee save(EmployeeDTO payload) {
         this.employeeRepository.findByEmail(payload.email())
@@ -32,8 +36,9 @@ public class EmployeeService {
                 .ifPresent(e -> {
                     throw new BadRequestException("Username '" + e.getUsername() + "' is already taken.");
                 });
-        Employee employee = new Employee(payload.username(), payload.firstName(), payload.lastName(), payload.email());
+        Employee employee = new Employee(payload.username(), payload.firstName(), payload.lastName(), payload.email(), bCrypt.encode(payload.password()));
         employee.setProfileImage("https://ui-avatars.com/api/?name=" + payload.firstName() + "+" + payload.lastName());
+        employee.setRole(Role.USER);
         Employee savedEmployee = this.employeeRepository.save(employee);
         return savedEmployee;
     }
@@ -57,6 +62,7 @@ public class EmployeeService {
         found.setFirstName(payload.firstName());
         found.setLastName(payload.lastName());
         found.setEmail(payload.email());
+        found.setPassword(payload.password()); //aggiunto per settare anche la psw
         found.setProfileImage("https://ui-avatars.com/api/?name=" + payload.firstName() + "+" + payload.lastName());
 
         Employee modifiedEmployee = this.employeeRepository.save(found);
@@ -82,5 +88,9 @@ public class EmployeeService {
         } catch (Exception e) {
             throw new BadRequestException("Sorry, problems with saving of the file");
         }
+    }
+
+    public Employee findByEmail(String email) {
+        return this.employeeRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("user with" + email + "not found"));
     }
 }

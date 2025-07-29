@@ -21,7 +21,7 @@ public record EmployeeDTO(
         String email,
 
         @NotEmpty(message = "Password is required")
-        @Size(min = 5)
         String password
+
 ) {
 }
